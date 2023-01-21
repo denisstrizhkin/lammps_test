@@ -1,5 +1,8 @@
 log ./results/log.lammps
 
+package omp 2
+suffix omp
+
 units metal
 dimension 3
 boundary p p m
@@ -17,11 +20,12 @@ variable C60_z equal 20
 variable C60_vel equal "sqrt(v_energy)*5.174"
 variable box_width equal 12
 variable box_bottom equal -16
+variable Si_top equal 15.3
 
 lattice diamond ${lattice} orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 
 molecule C60 ./mol.C60
-create_atoms 1 single ${C60_x} ${C60_y} ${C60_z} mol C60 1 units box
+create_atoms 1 single ${C60_x} ${C60_y} $(v_C60_z + v_lattice * v_Si_top) mol C60 1 units box
 
 pair_style tersoff/zbl
 pair_coeff * * SiC.tersoff.zbl Si C
@@ -47,6 +51,8 @@ fix dt all dt/reset 1 $(v_step/10) ${step} 0.1
 
 velocity C60 set NULL NULL -${C60_vel} sum yes units box
 
-run 50
+dump all all custom 20 ./results/all.dump x y z
 
-write_data ./results/fall.output.data
+run 1000
+
+write_dump Si custom ./results/fall.dump x y z
