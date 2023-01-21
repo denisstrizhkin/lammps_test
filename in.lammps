@@ -1,0 +1,52 @@
+log ./results/log.lammps
+
+units metal
+dimension 3
+boundary p p m
+atom_style atomic
+atom_modify map yes
+
+read_data ./fall.input.data
+
+variable step equal 1e-3
+variable lattice equal 5.43
+variable energy equal 8e3
+variable C60_x equal 0
+variable C60_y equal 0
+variable C60_z equal 20
+variable C60_vel equal "sqrt(v_energy)*5.174"
+variable box_width equal 12
+variable box_bottom equal -16
+
+lattice diamond ${lattice} orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
+
+molecule C60 ./mol.C60
+create_atoms 1 single ${C60_x} ${C60_y} ${C60_z} mol C60 1 units box
+
+pair_style tersoff/zbl
+pair_coeff * * SiC.tersoff.zbl Si C
+neighbor 3.0 bin
+
+region Si_fixed block -${box_width} ${box_width} -${box_width} ${box_width} &
+    ${box_bottom} $(v_box_bottom+0.5) units lattice
+
+group C60 type 2
+group Si type 1
+group Si_fixed region Si_fixed
+group nve subtract all Si_fixed
+
+compute atom_ke all ke/atom
+
+reset_timestep 0
+timestep ${step}
+thermo 10
+thermo_style custom step pe ke etotal temp dt time
+
+fix nve nve nve
+fix dt all dt/reset 1 $(v_step/10) ${step} 0.1
+
+velocity C60 set NULL NULL -${C60_vel} sum yes units box
+
+run 50
+
+write_data ./results/fall.output.data
