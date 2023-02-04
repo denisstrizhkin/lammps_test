@@ -12,12 +12,14 @@ def main():
     data_path='./results/fall.dump'
     data = np.loadtxt(fname=data_path, skiprows=9)
     
-    alpha_shape = alphashape.alphashape(data, 0.1)
+    alpha_shape = alphashape.alphashape(data, 0.2)
 
+    '''
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.plot_trisurf(*zip(*alpha_shape.vertices), triangles=alpha_shape.faces)
     plt.show()
+    '''
 
 if __name__ == '__main__':
     main()
